@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import ru.students.simple_rest.model.Request;
 import ru.students.simple_rest.model.Response;
+import ru.students.simple_rest.service.RequestModifierServiceInterface;
 import ru.students.simple_rest.service.ResponseModifierServiceInterface;
 
 @Slf4j
@@ -16,16 +17,23 @@ import ru.students.simple_rest.service.ResponseModifierServiceInterface;
 public class SimpleController
 {
     private final ResponseModifierServiceInterface responseModifierServiceInterface;
+    private final RequestModifierServiceInterface requestModifierServiceInterface;
 
-    private SimpleController(@Qualifier("ErrorInfoModifierService")ResponseModifierServiceInterface responseModifierServiceInterface) {
+    private SimpleController(
+            @Qualifier("ErrorInfoModifierService") ResponseModifierServiceInterface responseModifierServiceInterface,
+            @Qualifier("RemoteRequestModifierService") RequestModifierServiceInterface requestModifierServiceInterface
+    ) {
 
         this.responseModifierServiceInterface = responseModifierServiceInterface;
+        this.requestModifierServiceInterface = requestModifierServiceInterface;
     }
 
     @PostMapping(value = "/echo")
     public ResponseEntity<Response> echo(@RequestBody Request request)
     {
         log.info("Incoming request: " + String.valueOf(request));
+
+        requestModifierServiceInterface.modifyRequest(request);
 
         var response = Response.builder()
             .uid(request.getUid())
